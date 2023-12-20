@@ -13,9 +13,10 @@
         <v-container class='accent'>
             <v-btn @click="showOrder()"> Create Order </v-btn>
             <v-divider class="mt-6"></v-divider>
-        <v-row v-for="order in orders"  > 
+      
+        <v-row v-for="order in deliveries"  > 
             <v-col class="pt-2">
-                <delivery :address="order.address" :deliveryTime="order.deliveryTime" :driver="order.driver" class="mt-4" ></delivery>
+                <delivery :address="order.address" :deliveryTime="order.time" :driver="order.driver" class="mt-4" ></delivery>
                 <showMap :points="points" :latitude="order.lat" :longitude="order.long"></showMap>
                 <!-- <v-btn @click="editDriver(order)"> Edit Driver </v-btn> -->
                 <v-btn-toggle
@@ -24,19 +25,19 @@
         color="deep-purple accent-3"
         group
       >
-        <v-btn value="jake">
+        <v-btn value="jake" @click="updateDriver('jake', order.id)">
           Jake
         </v-btn>
 
-        <v-btn value="jose">
+        <v-btn value="jose" @click="updateDriver('jose', order.id)">
           Jose
         </v-btn>
 
-        <v-btn value="marisol">
+        <v-btn value="marisol" @click="updateDriver('marisol', order.id)">
           Marisol
         </v-btn>
 
-        <v-btn value="juanita">
+        <v-btn value="juanita" @click="updateDriver('juanita', order.id)">
           Juanita
         </v-btn>
       </v-btn-toggle>
@@ -44,6 +45,7 @@
                 <v-divider class="mt-6"></v-divider>
             </v-col>
         </v-row>
+      
       
     </v-container>
     <v-overlay v-if="overlay">
@@ -140,7 +142,8 @@
             deliveryTime: "This time",
             driver: "This Driver",
             orders: {
-            }
+            },
+            deliveries: {},
     
     }
     
@@ -177,6 +180,23 @@
     
     
       methods: {
+        async updateDriver(name, id) {
+          var updateSchema = {name: name, id: id}
+          const response = await this.$axios.$put('/api/updateDriver', updateSchema)
+        },
+        async getDeliveries() {
+          const response = await this.$axios.$get('/api/deliveries')
+          this.deliveries = response
+          console.log("deliveries")
+          console.log(this.deliveries)
+        },
+
+        async createDelivery(deliveryObj){
+          const response = await this.$axios.$post('/api/delivery', deliveryObj)
+          console.log(response)
+        },
+
+
         cancelEdit(){
             this.editDriver = false
         },
@@ -191,6 +211,9 @@
             this.overlay = false
             console.log(Object.keys(this.orders).length)
             var obj = { address: this.inputAddress, deliveryTime: this.inputTime, driver: "jake", lat: this.inputLat, long: this.inputLong}
+            var deliveryObj = { address: this.inputAddress, time: this.inputTime, driver: "jake", lat: this.inputLat, long: this.inputLong}
+            this.createDelivery(deliveryObj)
+            console.log("HIHIHIHIHIHIHIHIHIHIHIHIHIH")
             this.orders[String(Object.keys(this.orders).length + 1)] = obj
             var coords = {"lat": Number(this.inputLat), "long": Number(this.inputLong)}
             this.points.push(coords)
@@ -198,21 +221,27 @@
             console.log(this.points)
             this.$forceUpdate();
         },
-        orderDelivered(order){
-            console.log("What Is order? ")
-            console.log(order)
-            for (const [key,value] of Object.entries(this.orders)){
-                console.log(key,value)
-                console.log("helper")
-                console.log(order)
-                if (value == order){
-                    console.log("OMG IT worked")
-                    console.log(this.orders)
-                    delete this.orders[key]
-                    console.log(this.orders)
-                    this.$forceUpdate()
-                }
-            }
+        async orderDelivered(order){
+          console.log(order.id)
+          console.log(typeof order.id)
+            var updateSchema = { "id": order.id}
+            console.log(updateSchema)
+            const response = await this.$axios.$put('/api/deleteDelivery', updateSchema )
+
+            // console.log("What Is order? ")
+            // console.log(order)
+            // for (const [key,value] of Object.entries(this.orders)){
+            //     console.log(key,value)
+            //     console.log("helper")
+            //     console.log(order)
+            //     if (value == order){
+            //         console.log("OMG IT worked")
+            //         console.log(this.orders)
+            //         delete this.orders[key]
+            //         console.log(this.orders)
+            //         this.$forceUpdate()
+            //     }
+            // }
             
         },
         editDriveree(order){
@@ -229,14 +258,14 @@
     
     },
     //Lifecycle Hooks: beforeCreate, created, beforeMount, mounted, beforeUPdate, updated, beforeDestroy, destroyed
-    // mounted() {
-    //   console.log("MountedBaby");
-    //   this.grabBCData();
-    //
-    //   console.log("CalledThatData")
-    //
-    //
-    // }
+    mounted() {
+      console.log("MountedBaby");
+      this.getDeliveries();
+    
+      console.log("CalledThatData")
+    
+    
+    }
     
     };
     

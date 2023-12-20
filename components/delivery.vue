@@ -11,6 +11,11 @@
                 Delivery Time: {{deliveryTime}}
                 </v-col>
             </v-row>
+            <!-- <v-row>
+            <v-col>
+                Driver: {{driver}}
+                </v-col>
+            </v-row> -->
            
     </v-container>
     </div>
